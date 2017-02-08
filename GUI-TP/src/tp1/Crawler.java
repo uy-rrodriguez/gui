@@ -15,6 +15,8 @@ public class Crawler extends Application {
 		stage.setTitle("Crawler");
 		stage.setScene(scene);
 		stage.show();
+		stage.setResizable(false);
+		
 	}
 
 	public static void main(String[] args) {

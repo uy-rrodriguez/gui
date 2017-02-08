@@ -1,0 +1,6 @@
+#btn-annuler { 
+    -fx-background-image: url('../img/annuler.png');
+    -fx-background-size: 16px;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: 50%;
+}

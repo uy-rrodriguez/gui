@@ -8,6 +8,8 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -103,10 +105,27 @@ public class CrawlerController {
         assert visualizeFile != null : "fx:id=\"visualizeFile\" was not injected: check your FXML file 'application.fxml'.";
 
         
+        /* 
+         * Changement de langue
+         */
         langChoiceBox.setItems(FXCollections.observableArrayList(
     			"Français",
     			"English"
     		));
+        langChoiceBox.setValue("Français");
+        langChoiceBox.setOnAction(new EventHandler<ActionEvent>() {
+			
+			@Override
+			public void handle(ActionEvent event) {
+				String langue =	(String) langChoiceBox.getValue();
+				System.out.println(langue);
+				/*
+				if (langue.equals("Français")) {
+					
+				}
+				*/
+			}
+		});
     }
 }
 

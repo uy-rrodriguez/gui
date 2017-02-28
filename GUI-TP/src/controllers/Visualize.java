@@ -1,3 +1,4 @@
+package controllers;
 
 import java.io.File;
 import javafx.scene.web.WebView;

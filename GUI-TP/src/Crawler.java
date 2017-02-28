@@ -1,4 +1,3 @@
-package app;
 
 
 import java.util.Locale;
@@ -19,7 +18,7 @@ public class Crawler extends Application {
 		
 		// Fenêtre principale
 		Parent root = FXMLLoader.load(
-				getClass().getResource("../layout/application.fxml"),
+				getClass().getResource("layout/application.fxml"),
 				PropertyResourceBundle.getBundle("bundles.Langue", locale));
 		
 		Scene scene = new Scene(root);

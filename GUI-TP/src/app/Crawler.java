@@ -10,12 +10,16 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class Crawler extends Application {
+	
+	public static final String LANG_BUNDLES = "bundles.Langue";
+	public static final String LANG_FR = "Français";
+	public static final String LANG_EN = "English";
 
 	@Override
 	public void start(Stage stage) throws Exception {
 		// Chargement de la langue
 		// Langue française
-		Locale locale = new Locale("en", "");
+		Locale locale = new Locale("fr", "");
 		
 		// Fenêtre principale
 		Parent root = FXMLLoader.load(

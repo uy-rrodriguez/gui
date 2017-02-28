@@ -11,7 +11,7 @@
    <children>
       <TabPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE">
         <tabs>
-          <Tab text="%tab1.title">
+          <Tab fx:id="tab1Title" text="%tab1.title">
                <content>
                   <GridPane>
                     <columnConstraints>
@@ -38,12 +38,12 @@
                               <Insets left="10.0" />
                            </GridPane.margin>
                         </Button>
-                        <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" prefHeight="15.0" prefWidth="115.0" text="%download.url" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <Label alignment="CENTER_RIGHT" prefHeight="15.0" prefWidth="116.0" text="%download.inputFile" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <Label fx:id="downloadURLLbl" alignment="CENTER_RIGHT" contentDisplay="RIGHT" prefHeight="15.0" prefWidth="115.0" text="%download.url" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Label fx:id="downloadFolderLbl" alignment="CENTER_RIGHT" prefHeight="15.0" prefWidth="116.0" text="%download.inputFile" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                         <ChoiceBox fx:id="downloadDepthChoiceBox" prefWidth="150.0" GridPane.columnIndex="2" GridPane.rowIndex="3" />
-                        <Label alignment="CENTER_RIGHT" prefHeight="15.0" prefWidth="115.0" text="%download.depth" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                        <Label fx:id="downloadDepthLbl" alignment="CENTER_RIGHT" prefHeight="15.0" prefWidth="115.0" text="%download.depth" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                         <CheckBox fx:id="downloadCheckMedia" mnemonicParsing="false" prefHeight="18.0" prefWidth="146.0" GridPane.columnIndex="2" GridPane.rowIndex="4" />
-                        <Label alignment="CENTER_RIGHT" prefHeight="15.0" prefWidth="115.0" text="%download.checkMedia" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="4" />
+                        <Label fx:id="downloadMediaLbl" alignment="CENTER_RIGHT" prefHeight="15.0" prefWidth="115.0" text="%download.checkMedia" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="4" />
                         <Button fx:id="downloadStartBtn" mnemonicParsing="false" prefHeight="25.0" text="%download.buttonStart" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="RIGHT" GridPane.rowIndex="5">
                            <GridPane.margin>
                               <Insets />
@@ -53,7 +53,7 @@
                   </GridPane>
                </content>
             </Tab>
-          <Tab text="%tab2.title">
+          <Tab fx:id="tab2Title" text="%tab2.title">
                <content>
                   <GridPane>
                     <columnConstraints>
@@ -70,7 +70,7 @@
                     </rowConstraints>
                      <children>
                         <TextField fx:id="managementFolder" prefHeight="25.0" prefWidth="268.0" GridPane.columnIndex="2" />
-                        <Label contentDisplay="RIGHT" prefHeight="15.0" text="%management.inputFile" GridPane.columnIndex="1" GridPane.halignment="RIGHT">
+                        <Label fx:id="managementFolderLbl" contentDisplay="RIGHT" prefHeight="15.0" text="%management.inputFile" GridPane.columnIndex="1" GridPane.halignment="RIGHT">
                            <GridPane.margin>
                               <Insets right="10.0" />
                            </GridPane.margin></Label>
@@ -84,7 +84,7 @@
                   </GridPane>
                </content>
             </Tab>
-            <Tab text="%tab3.title">
+            <Tab fx:id="tab3Title" text="%tab3.title">
                <content>
                   <GridPane>
                     <columnConstraints>
@@ -101,7 +101,7 @@
                     </rowConstraints>
                      <children>
                         <TextField fx:id="visualizeFile" prefHeight="25.0" prefWidth="268.0" GridPane.columnIndex="2" />
-                        <Label contentDisplay="RIGHT" prefHeight="15.0" text="%visualize.inputFile" GridPane.columnIndex="1" GridPane.halignment="RIGHT">
+                        <Label fx:id="visualizeFileLbl" contentDisplay="RIGHT" prefHeight="15.0" text="%visualize.inputFile" GridPane.columnIndex="1" GridPane.halignment="RIGHT">
                            <GridPane.margin>
                               <Insets right="10.0" />
                            </GridPane.margin></Label>
@@ -125,7 +125,7 @@
          <children>
             <GridPane prefHeight="36.0" prefWidth="598.0">
                <children>
-                  <Button id="btn-annuler" fx:id="downloadCancelBtn" alignment="CENTER_RIGHT" maxHeight="20.0" mnemonicParsing="false" prefHeight="8.0" prefWidth="20.0" text=" ">
+                  <Button id="btn-annuler" fx:id="downloadCancelBtn" alignment="CENTER_RIGHT" maxHeight="25.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" text=" ">
                      <GridPane.margin>
                         <Insets left="5.0" />
                      </GridPane.margin>

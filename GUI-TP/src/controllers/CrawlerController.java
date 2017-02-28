@@ -5,8 +5,11 @@
 package controllers;
 
 import java.net.URL;
+import java.util.Locale;
+import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
+import app.Crawler;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -17,11 +20,15 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeView;
 import javafx.scene.web.WebView;
 
 public class CrawlerController {
+	
+    private static final ObservableResourceFactory RESOURCE_FACTORY = new ObservableResourceFactory();
+    
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -29,103 +36,151 @@ public class CrawlerController {
     @FXML // URL location of the FXML file that was given to the FXMLLoader
     private URL location;
 
-    @FXML // fx:id="downloadFolder"
-    private TextField downloadFolder; // Value injected by FXMLLoader
+    @FXML
+    private Tab tab1Title;
 
-    @FXML // fx:id="managementTreeView"
-    private TreeView<?> managementTreeView; // Value injected by FXMLLoader
+    @FXML
+    private Tab tab2Title;
 
-    @FXML // fx:id="visualizeWebView"
-    private WebView visualizeWebView; // Value injected by FXMLLoader
+    @FXML
+    private Tab tab3Title;
 
-    @FXML // fx:id="downloadStartBtn"
-    private Button downloadStartBtn; // Value injected by FXMLLoader
+    @FXML
+    private TextField downloadFolder;
 
-    @FXML // fx:id="downloadURL"
-    private TextField downloadURL; // Value injected by FXMLLoader
+    @FXML
+    private TreeView<?> managementTreeView;
 
-    @FXML // fx:id="downloadMessage"
-    private Label downloadMessage; // Value injected by FXMLLoader
+    @FXML
+    private WebView visualizeWebView;
 
-    @FXML // fx:id="downloadCheckMedia"
-    private CheckBox downloadCheckMedia; // Value injected by FXMLLoader
+    @FXML
+    private Button downloadStartBtn;
 
-    @FXML // fx:id="downloadProgressBar"
-    private ProgressBar downloadProgressBar; // Value injected by FXMLLoader
+    @FXML
+    private TextField downloadURL;
 
-    @FXML // fx:id="visualizeBrowseBtn"
-    private Button visualizeBrowseBtn; // Value injected by FXMLLoader
+    @FXML
+    private Label downloadURLLbl;
 
-    @FXML // fx:id="managementFolder"
-    private TextField managementFolder; // Value injected by FXMLLoader
+    @FXML
+    private Label downloadMessage;
 
-    @FXML // fx:id="langChoiceBox"
-    private ChoiceBox<String> langChoiceBox; // Value injected by FXMLLoader
+    @FXML
+    private Label downloadFolderLbl;
 
-    @FXML // fx:id="downloadDepthChoiceBox"
-    private ChoiceBox<?> downloadDepthChoiceBox; // Value injected by FXMLLoader
+    @FXML
+    private CheckBox downloadCheckMedia;
 
-    @FXML // fx:id="downloadProgressLbl"
-    private Label downloadProgressLbl; // Value injected by FXMLLoader
+    @FXML
+    private Label downloadMediaLbl;
 
-    @FXML // fx:id="managementBrowseBtn"
-    private Button managementBrowseBtn; // Value injected by FXMLLoader
+    @FXML
+    private ProgressBar downloadProgressBar;
 
-    @FXML // fx:id="downloadBrowseBtn"
-    private Button downloadBrowseBtn; // Value injected by FXMLLoader
+    @FXML
+    private Label managementFolderLbl;
 
-    @FXML // fx:id="visualizeScrollPane"
-    private ScrollPane visualizeScrollPane; // Value injected by FXMLLoader
+    @FXML
+    private Button visualizeBrowseBtn;
 
-    @FXML // fx:id="downloadCancelBtn"
-    private Button downloadCancelBtn; // Value injected by FXMLLoader
+    @FXML
+    private TextField managementFolder;
 
-    @FXML // fx:id="visualizeFile"
-    private TextField visualizeFile; // Value injected by FXMLLoader
+    @FXML
+    private ChoiceBox<String> langChoiceBox;
+
+    @FXML
+    private ChoiceBox<Integer> downloadDepthChoiceBox;
+
+    @FXML
+    private Label downloadProgressLbl;
+
+    @FXML
+    private Button managementBrowseBtn;
+
+    @FXML
+    private Button downloadBrowseBtn;
+
+    @FXML
+    private Label visualizeFileLbl;
+
+    @FXML
+    private ScrollPane visualizeScrollPane;
+
+    @FXML
+    private Button downloadCancelBtn;
+
+    @FXML
+    private TextField visualizeFile;
+
+    @FXML
+    private Label downloadDepthLbl;
+    
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
-        assert downloadFolder != null : "fx:id=\"downloadFolder\" was not injected: check your FXML file 'application.fxml'.";
-        assert managementTreeView != null : "fx:id=\"managementTreeView\" was not injected: check your FXML file 'application.fxml'.";
-        assert visualizeWebView != null : "fx:id=\"visualizeWebView\" was not injected: check your FXML file 'application.fxml'.";
-        assert downloadStartBtn != null : "fx:id=\"downloadStartBtn\" was not injected: check your FXML file 'application.fxml'.";
-        assert downloadURL != null : "fx:id=\"downloadURL\" was not injected: check your FXML file 'application.fxml'.";
-        assert downloadMessage != null : "fx:id=\"downloadMessage\" was not injected: check your FXML file 'application.fxml'.";
-        assert downloadCheckMedia != null : "fx:id=\"downloadCheckMedia\" was not injected: check your FXML file 'application.fxml'.";
-        assert downloadProgressBar != null : "fx:id=\"downloadProgressBar\" was not injected: check your FXML file 'application.fxml'.";
-        assert visualizeBrowseBtn != null : "fx:id=\"visualizeBrowseBtn\" was not injected: check your FXML file 'application.fxml'.";
-        assert managementFolder != null : "fx:id=\"managementFolder\" was not injected: check your FXML file 'application.fxml'.";
-        assert langChoiceBox != null : "fx:id=\"langChoiceBox\" was not injected: check your FXML file 'application.fxml'.";
-        assert downloadDepthChoiceBox != null : "fx:id=\"downloadDepthChoiceBox\" was not injected: check your FXML file 'application.fxml'.";
-        assert downloadProgressLbl != null : "fx:id=\"downloadProgressLbl\" was not injected: check your FXML file 'application.fxml'.";
-        assert managementBrowseBtn != null : "fx:id=\"managementBrowseBtn\" was not injected: check your FXML file 'application.fxml'.";
-        assert downloadBrowseBtn != null : "fx:id=\"downloadBrowseBtn\" was not injected: check your FXML file 'application.fxml'.";
-        assert visualizeScrollPane != null : "fx:id=\"visualizeScrollPane\" was not injected: check your FXML file 'application.fxml'.";
-        assert downloadCancelBtn != null : "fx:id=\"downloadCancelBtn\" was not injected: check your FXML file 'application.fxml'.";
-        assert visualizeFile != null : "fx:id=\"visualizeFile\" was not injected: check your FXML file 'application.fxml'.";
-
+        /*
+         * Binding des valeurs qui changeron par rapport à la langue
+         */
+        //ObservableRessourceFactory resourceFactory = ObservableRessourceFactory.getInstance();
+        RESOURCE_FACTORY.setResources(resources);
+        
+        // Tab 1
+        tab1Title.textProperty().bind(RESOURCE_FACTORY.getStringBinding("tab1.title"));
+        downloadURLLbl.textProperty().bind(RESOURCE_FACTORY.getStringBinding("download.url"));
+        downloadFolderLbl.textProperty().bind(RESOURCE_FACTORY.getStringBinding("download.inputFile"));
+        downloadDepthLbl.textProperty().bind(RESOURCE_FACTORY.getStringBinding("download.depth"));
+        downloadMediaLbl.textProperty().bind(RESOURCE_FACTORY.getStringBinding("download.checkMedia"));
+        downloadBrowseBtn.textProperty().bind(RESOURCE_FACTORY.getStringBinding("inputFile.button"));
+        downloadStartBtn.textProperty().bind(RESOURCE_FACTORY.getStringBinding("download.buttonStart"));
+        
+        // Tab 2
+        tab2Title.textProperty().bind(RESOURCE_FACTORY.getStringBinding("tab2.title"));
+        managementFolderLbl.textProperty().bind(RESOURCE_FACTORY.getStringBinding("management.inputFile"));
+        managementBrowseBtn.textProperty().bind(RESOURCE_FACTORY.getStringBinding("inputFile.button"));
+        
+        // Tab 3
+        tab3Title.textProperty().bind(RESOURCE_FACTORY.getStringBinding("tab3.title"));
+        visualizeFileLbl.textProperty().bind(RESOURCE_FACTORY.getStringBinding("visualize.inputFile"));
+        visualizeBrowseBtn.textProperty().bind(RESOURCE_FACTORY.getStringBinding("inputFile.button"));
+        
+        // Général
+        downloadMessage.textProperty().bind(RESOURCE_FACTORY.getStringBinding("download.message.loading"));
         
         /* 
-         * Changement de langue
+         * Select pour changer de langue
          */
-        langChoiceBox.setItems(FXCollections.observableArrayList(
-    			"Français",
-    			"English"
-    		));
+        langChoiceBox.setItems(FXCollections.observableArrayList("Français", "English"));
         langChoiceBox.setValue("Français");
         langChoiceBox.setOnAction(new EventHandler<ActionEvent>() {
 			
 			@Override
 			public void handle(ActionEvent event) {
 				String langue =	(String) langChoiceBox.getValue();
-				System.out.println(langue);
-				/*
-				if (langue.equals("Français")) {
-					
+				//System.out.println(langue);
+		        
+		        Locale locale;
+				if (langue.equals(Crawler.LANG_EN)) {
+					locale = new Locale("en", "");
 				}
-				*/
+				else {
+					locale = new Locale("fr", "");
+				} 
+				
+				// On change la ressource qui contient la langue et ca changera tous les
+				// éléments avec lesquels on a créé le binding.
+				ResourceBundle bundle = PropertyResourceBundle.getBundle(Crawler.LANG_BUNDLES, locale);
+				RESOURCE_FACTORY.setResources(bundle);
 			}
 		});
+
+        
+        /* 
+         * Select pour choisir la profondeur
+         */
+        downloadDepthChoiceBox.setItems(FXCollections.observableArrayList(0, 1, 2));
+        downloadDepthChoiceBox.setValue(0);
     }
 }
 

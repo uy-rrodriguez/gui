@@ -1,8 +1,5 @@
-/**
- * Sample Skeleton for 'application.fxml' Controller Class
- */
 
-package controllers;
+
 
 import java.net.URL;
 import java.util.Locale;
@@ -23,12 +20,14 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.web.WebView;
 
 public class CrawlerController {
-	
+
     private static final ObservableResourceFactory RESOURCE_FACTORY = new ObservableResourceFactory();
-    
+	private Visualize vis;
+	private Management man;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -174,13 +173,37 @@ public class CrawlerController {
 				RESOURCE_FACTORY.setResources(bundle);
 			}
 		});
-
         
         /* 
          * Select pour choisir la profondeur
          */
         downloadDepthChoiceBox.setItems(FXCollections.observableArrayList(0, 1, 2));
         downloadDepthChoiceBox.setValue(0);
+        
+        
+        /*
+         * Visualize et Browser
+         */
+        this.vis = new Visualize(visualizeWebView);
+        this.man = new Management(managementTreeView);
+        
+        visualizeBrowseBtn.setOnMouseClicked(new EventHandler<MouseEvent>() {
+        	
+        	public void handle(MouseEvent event){
+        		visualizeFile.setText(vis.setFile());
+        		vis.launch();
+        	}
+        });
+        
+        managementBrowseBtn.setOnMouseClicked(new EventHandler<MouseEvent>() {
+        	
+        	public void handle(MouseEvent event){
+        		String path = man.setDirectory();
+        		managementFolder.setText(path);
+        		
+        	}
+        });
+        
     }
 }
 

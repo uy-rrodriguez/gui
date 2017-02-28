@@ -1,14 +1,39 @@
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
+import javafx.scene.control.TreeView;
+import javafx.scene.control.TreeItem;
+
+import javafx.stage.DirectoryChooser;
 
 public class Management 
 {
 	private String path;
+	private File currentDirectory;
+	private final TreeView managementTreeView;
+
 	
-	public Management(String path)
+	public Management(TreeView managementTreeView)
 	{
-		this.path = path;
+		this.managementTreeView = managementTreeView;
+		this.buildTreeView();
+	}
+	
+	private void buildTreeView()
+	{
+		//this.managementTreeView.getSelectionModel().selectedItemProperty()
+	}
+	
+	public String setDirectory()
+	{
+		DirectoryChooser dc = new DirectoryChooser();
+		dc.setInitialDirectory(currentDirectory);
+		File selectedDirectory = dc.showDialog(null);
+		if(selectedDirectory == null) return "";
+		else{
+			currentDirectory = new File(selectedDirectory.getAbsolutePath());
+			return selectedDirectory.getAbsolutePath();
+		}
 	}
 	
 	public String[] listFiles()
@@ -39,4 +64,3 @@ public class Management
 		return dir_d;
 	}
 }
-

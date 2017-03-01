@@ -377,8 +377,7 @@ public class CrawlerController {
          * Visualize et Browser
          */
         this.vis = new Visualize(visualizeWebView);
-        this.man = new Management(managementTreeView);
-        
+        this.man = new Management(managementTreeView, managementFolder);        
         visualizeBrowseBtn.setOnMouseClicked(new EventHandler<MouseEvent>() {
         	
         	public void handle(MouseEvent event){
@@ -392,7 +391,7 @@ public class CrawlerController {
         	public void handle(MouseEvent event){
         		String path = man.setDirectory();
         		managementFolder.setText(path);
-        		
+        		man.loadTreeView(path);
         	}
         });
 

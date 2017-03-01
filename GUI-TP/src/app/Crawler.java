@@ -14,6 +14,7 @@ public class Crawler extends Application {
 	public static final String LANG_BUNDLES = "bundles.Langue";
 	public static final String LANG_FR = "Français";
 	public static final String LANG_EN = "English";
+	public static final String LANG_RU = "русский";
 
 	@Override
 	public void start(Stage stage) throws Exception {

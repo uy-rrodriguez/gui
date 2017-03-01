@@ -24,11 +24,13 @@ public class Webpage {
 	private String url;
 	private File file;
 	private List<Webpage> children;
+	private Document htmlDocument;
 	
 	public Webpage() {
 		url = null;
 		setFile(null);
 		children = new ArrayList<>();
+		htmlDocument = null;
 	}
 	
 	public String getUrl() {
@@ -54,24 +56,20 @@ public class Webpage {
 	public void setChildren(List<Webpage> children) {
 		this.children = children;
 	}
-	
+
 	public void addChildren(Webpage child) {
 		this.children.add(child);
 	}
 	
-	
-	public boolean isHTMLFile() throws IOException {
-		InputStreamReader reader = new InputStreamReader(new FileInputStream(file));
-		char[] c = new char[20];
-		reader.read(c);
-		reader.close();
-		
-		return new String(c).contains("<html");
+	public Document getHtmlDocument() {
+		return htmlDocument;
 	}
-	
-	public List<String> getHTMLLinks() throws IOException {
-		List<String> result = new ArrayList<>();
-		
+
+	public void setHtmlDocument(Document htmlDocument) {
+		this.htmlDocument = htmlDocument;
+	}
+
+	public void loadhtmlDocumentFromFile() throws FileNotFoundException, IOException {
 		if (isHTMLFile()) {
 			// Ouverture du fichier
 			StringBuffer strBuff = new StringBuffer();
@@ -83,11 +81,64 @@ public class Webpage {
 			reader.close();
 			
 			// Parsing HTML
-			Document doc = Jsoup.parse(strBuff.toString());
-			//Document doc = Jsoup.connect(url).get();
-			Elements links = doc.select("a[href]");
+			this.htmlDocument = Jsoup.parse(strBuff.toString());
+		}
+		else  {
+			this.htmlDocument = null;
+		}
+	}
+	
+	
+	public boolean isHTMLFile() throws IOException {
+		InputStreamReader reader = new InputStreamReader(new FileInputStream(file));
+		char[] c = new char[20];
+		reader.read(c);
+		reader.close();
+		
+		return (new String(c).contains("<html") || new String(c).contains("<!DOCTYPE html"));
+	}
+	
+	public List<String> getHTMLLinks() throws IOException {
+		List<String> result = new ArrayList<>();
+		
+		if (htmlDocument != null) {
+			Elements links = htmlDocument.select("a[href]").select(":not(a[href~=(?i)\\.(png|jpe?g|gif)])");
 			for (Element link : links) {
 	            String urlLink = link.attr("abs:href").trim();
+	            if (! urlLink.isEmpty() && ! urlLink.contains("#")) {
+	            	result.add(urlLink);
+	            }
+	        }
+		}
+		
+		// On retourne le resultat
+		return result;
+	}
+	
+	public List<String> getVideoLinks() {
+		List<String> result = new ArrayList<>();
+		
+		if (htmlDocument != null) {
+			Elements links = htmlDocument.select("a[href$=.mp4],meta[property=og:video],meta[property=og:video:secure_url]");
+			for (Element link : links) {
+	            String urlLink = link.attr("abs:href").trim();
+	            if (! urlLink.isEmpty() && ! urlLink.contains("#")) {
+	            	result.add(urlLink);
+	            }
+	        }
+		}
+		
+		// On retourne le resultat
+		return result;
+	}
+	
+	public List<String> getImageLinks() {
+		List<String> result = new ArrayList<>();
+		
+		if (htmlDocument != null) {
+			Elements links = htmlDocument.select("img[src],image[src]");
+			for (Element link : links) {
+	            String urlLink = link.attr("src").trim();
 	            if (! urlLink.isEmpty() && ! urlLink.contains("#")) {
 	            	result.add(urlLink);
 	            }

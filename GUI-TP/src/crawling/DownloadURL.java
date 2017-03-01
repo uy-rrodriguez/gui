@@ -1,5 +1,6 @@
 package crawling;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -13,10 +14,13 @@ import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+
+import javafx.concurrent.Task;
 
 /*
  * Pour cela, on déclare une java.net.URL, construite avec l'URL de la servlet,
@@ -29,7 +33,21 @@ public class DownloadURL {
 	public static final String INFO_FILE = "info.txt";
 	public static final String CHILDREN_DIR = "children";
 	public static final String CHILD_DIR = "page";
+	public static final String MEDIA_DIR = "media";
 	
+	
+	private Task javaFXTask;
+	public Task getJavaFXTask() {
+		return javaFXTask;
+	}
+	public void setJavaFXTask(Task javaFXTask) {
+		this.javaFXTask = javaFXTask;
+	}
+
+	/**
+	 * Delete directory tree.
+	 * @throws IOException
+	 */
 	private void delete(File f) throws IOException {
 		if (f.isDirectory()) {
 			for (File c : f.listFiles())
@@ -51,8 +69,7 @@ public class DownloadURL {
 		writer.close();
 	}
 	
-	private void createChildrenDir(String pathRootDir) throws IOException {
-		String pathDir = pathRootDir + DIR_SEP + CHILDREN_DIR;
+	private void deleteAndCreateDir(String pathDir) throws IOException {
 		File dir = new File(pathDir);
 		if (dir.exists())
 			this.delete(dir);
@@ -66,8 +83,16 @@ public class DownloadURL {
 			dir.mkdirs();
 	}
 	
-	public Webpage createSingleWebpage(String strURL, String pathRootDir) throws IOException {
+	public Webpage createSingleWebpage(String strURL, String pathRootDir, boolean isMedia) throws IOException {
+		if (javaFXTask != null && javaFXTask.isCancelled())
+			return null;
+		
 		try {
+			// Nettoyage de l'URL
+			if ((!strURL.startsWith("http://") || !strURL.startsWith("https://"))
+					&& !strURL.contains("://"))
+				strURL = "http://" + strURL;
+			
 			// D'abord, on se connecte a la page
 			InputStream is = getStreamFromURL(strURL);
 			
@@ -75,7 +100,7 @@ public class DownloadURL {
 			createRootDir(pathRootDir);
 			
 			// On cree le repertoire "children"
-			createChildrenDir(pathRootDir);
+			deleteAndCreateDir(pathRootDir + DIR_SEP + CHILDREN_DIR);
 			
 			// Creation du fichier info.txt
 			createInfoFile(strURL, pathRootDir);
@@ -89,19 +114,70 @@ public class DownloadURL {
 			Webpage page = new Webpage();
 			page.setUrl(strURL);
 			page.setFile(new File(pathRealFile));
+			page.loadhtmlDocumentFromFile();
+			
+			// Recuperation des fichiers media
+			if (isMedia && page.isHTMLFile()) {
+				// Creation du repertoire destin
+				String mediaPath = pathRootDir + DIR_SEP + MEDIA_DIR;
+				deleteAndCreateDir(mediaPath);
+				
+				// Parsing de media
+				List<String> imageLinks = page.getImageLinks();
+				List<String> videoLinks = page.getVideoLinks();
+				
+				List<String> mediaLinks = new ArrayList<>();
+				mediaLinks.addAll(imageLinks);
+				mediaLinks.addAll(videoLinks);
+				
+				// Telechargement de media
+				for (String link : mediaLinks) {
+					if (javaFXTask != null && javaFXTask.isCancelled())
+						return null;
+					
+					try {
+						// Recuperation du nom du fichier
+						String fileName = link.substring( link.lastIndexOf('/') + 1, link.length() );
+						
+						// Suppression des variables GET dans le nom
+						if (fileName.contains("?"))
+							fileName = fileName.substring(0, fileName.indexOf("?"));
+						
+						// Modification de l'URL pour les path relatifs
+						if (! link.contains("http://") || ! link.contains("https://")) {
+							String parentURLPath = strURL.substring(0, strURL.lastIndexOf("/"));
+							link = parentURLPath + link;
+						}
+						
+						// Creation d'un objet URL
+						URL mediaURL = new URL(strURL);
+						URLConnection mediaURLConn = mediaURL.openConnection();
+						
+						System.out.println("Media : " + fileName);
+						InputStream mediaIS = mediaURLConn.getInputStream();
+						writeBinaryFileFromStream(mediaPath + DIR_SEP + fileName, mediaIS, mediaURLConn.getContentLength());
+					}
+					catch (Exception e) {
+						//e.printStackTrace();
+					}
+				}
+				
+				//System.out.println("MEDIA : " + imageLinks);
+				//System.out.println(imageLinks);
+				//System.out.println(videoLinks);
+			}
 		
 			return page;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			
 			return null;
 		}
 	}
 	
-	public Webpage createWebpageTree(String strURL, String pathRootDir, int depth) throws IOException {
+	public Webpage createWebpageTree(String strURL, String pathRootDir, int depth, boolean isMedia) throws IOException {
 		System.out.println("createWebpageTree " + strURL + "|" + pathRootDir + "|" + depth);
-		Webpage root = createSingleWebpage(strURL, pathRootDir);
+		Webpage root = createSingleWebpage(strURL, pathRootDir, isMedia);
 		
 		if (depth > 0 && root != null) {
 			depth--;
@@ -110,8 +186,11 @@ public class DownloadURL {
 			
 			if (links != null) {
 				for (int i = 0; i < links.size(); i++) {
+					if (javaFXTask != null && javaFXTask.isCancelled())
+						return null;
+					
 					String link = links.get(i);
-					Webpage child = createWebpageTree(link, pathChildren + CHILD_DIR + (i+1), depth);
+					Webpage child = createWebpageTree(link, pathChildren + CHILD_DIR + (i+1), depth, isMedia);
 					
 					if (child != null)
 						root.addChildren(child);
@@ -135,17 +214,8 @@ public class DownloadURL {
 			f.delete();
 		}
 
-		//BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-		//BufferedWriter writer = new BufferedWriter(new FileWriter(f));
 		InputStreamReader reader = new InputStreamReader(is);
 		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(f));
-		
-		/*
-		String line;
-		while ((line = reader.readLine()) != null) {
-			writer.write(line);
-		}
-		*/
 		
 		char[] c = new char[256];
 		while (reader.read(c) >= 0) {
@@ -155,10 +225,32 @@ public class DownloadURL {
 		writer.close();
 	}
 	
+	public void writeBinaryFileFromStream(String path, InputStream is, int contentLength) throws IOException {
+		File f = new File(path);
+		if (f.exists()) {
+			f.delete();
+		}
+
+		InputStream in = new BufferedInputStream(is);
+		FileOutputStream out = new FileOutputStream(f);
+		
+	    byte[] data = new byte[256];
+	    int bytesRead = 0;
+		
+	    while ((bytesRead = in.read(data)) >= 0) {
+	    	out.write(data, 0, bytesRead);
+			out.flush();
+			data = new byte[256];
+	    }
+		
+		in.close();
+		out.close();
+	}
+	
 	public static void main(String[] args) {
 		try {
 			DownloadURL d = new DownloadURL();
-			Webpage page = d.createWebpageTree("http://www.google.com", "test", 2);
+			Webpage page = d.createWebpageTree("https://blog.codinghorror.com/", "test", 1, true);
 			System.out.println(page);
 			
 			System.out.println("HTML? " + page.isHTMLFile());

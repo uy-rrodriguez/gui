@@ -2,14 +2,30 @@ package controllers;
 
 
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Locale;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
 import app.Crawler;
+import crawling.DownloadURL;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -23,6 +39,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.web.WebView;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
 
 public class CrawlerController {
 
@@ -117,6 +136,100 @@ public class CrawlerController {
     @FXML
     private Label downloadDepthLbl;
     
+    
+    /**
+     * Activation et desactivation des controles pour le telechargement
+     */
+    private void toggleDownload(boolean downloading) {
+    	if (downloading) {
+    		downloadMessage.setVisible(true);
+            //downloadProgressLbl.setVisible(true);
+            downloadProgressBar.setVisible(true);
+            downloadCancelBtn.setVisible(true);
+            
+            downloadStartBtn.getParent().setDisable(true);
+    	}
+    	else {
+    		downloadMessage.setVisible(false);
+    		//downloadMessage.textProperty().set(RESOURCE_FACTORY.getStringBinding("download.message.finish").get());
+    		
+            downloadProgressLbl.setVisible(false);
+            downloadProgressBar.setVisible(false);
+            downloadCancelBtn.setVisible(false);
+            
+            downloadStartBtn.getParent().setDisable(false);
+    	}
+    }
+    
+    /**
+     * Classe pour executer le telechargement en arriere-plan
+     *
+     */
+    DownloadService downloadService;
+    private static class DownloadService extends Service<Void> {
+
+		@Override
+		protected Task<Void> createTask() {
+			return new Task<Void>() {
+
+				@Override
+				protected Void call() throws Exception {
+					DownloadURL d = new DownloadURL();
+					d.setJavaFXTask(this);
+					//d.createSingleWebpage(url.get(), path.get());
+					d.createWebpageTree(url.get(), path.get(), depth.get(), media.get());
+					return null;
+				}
+				
+            };
+		}
+		
+    	
+		// Properties pour configurer le telechargement
+        private StringProperty url = new SimpleStringProperty();
+        private StringProperty path = new SimpleStringProperty();
+        private IntegerProperty depth = new SimpleIntegerProperty();
+        private BooleanProperty media = new SimpleBooleanProperty();
+
+        public final String getUrl() {
+            return url.get();
+        }
+        public final void setUrl(String value) {
+            url.set(value);
+        }
+        public final String getPath() {
+			return path.get();
+		}
+		public void setPath(String value) {
+			this.path.set(value);
+		}
+		public final Integer getDepth() {
+			return depth.get();
+		}
+		public void setDepth(Integer value) {
+			this.depth.set(value);
+		}
+		public final Boolean getMedia() {
+			return media.get();
+		}
+		public void setMedia(Boolean value) {
+			this.media.set(value);
+		}
+		
+		public final StringProperty urlProperty() {
+           return url;
+        }
+		public final StringProperty pathProperty() {
+           return path;
+        }
+		public final IntegerProperty depthProperty() {
+           return depth;
+        }
+		public final BooleanProperty mediaProperty() {
+           return media;
+        }
+
+	}
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
@@ -151,7 +264,7 @@ public class CrawlerController {
         /* 
          * Select pour changer de langue
          */
-        langChoiceBox.setItems(FXCollections.observableArrayList("Français", "English"));
+        langChoiceBox.setItems(FXCollections.observableArrayList("Français", "English", "русский"));
         langChoiceBox.setValue("Français");
         langChoiceBox.setOnAction(new EventHandler<ActionEvent>() {
 			
@@ -163,6 +276,9 @@ public class CrawlerController {
 		        Locale locale;
 				if (langue.equals(Crawler.LANG_EN)) {
 					locale = new Locale("en", "");
+				}
+				else if (langue.equals(Crawler.LANG_RU)) {
+					locale = new Locale("ru", "");
 				}
 				else {
 					locale = new Locale("fr", "");
@@ -178,8 +294,83 @@ public class CrawlerController {
         /* 
          * Select pour choisir la profondeur
          */
-        downloadDepthChoiceBox.setItems(FXCollections.observableArrayList(0, 1, 2));
+        downloadDepthChoiceBox.setItems(FXCollections.observableArrayList(0, 1, 2, 3, 4, 5));
         downloadDepthChoiceBox.setValue(0);
+        
+        
+        /*
+         * Telechargement
+         */
+        // Valeurs par defaut
+        downloadURL.setText("https://www.google.com");
+        downloadFolder.setText("Test_");
+        
+        // On cache les messages et autres controles de telechargement
+        toggleDownload(false);
+        
+        // Action du bouton [Telecharger]
+        downloadStartBtn.setOnMouseClicked(new EventHandler<MouseEvent>() {
+        	public void handle(MouseEvent event){
+        		toggleDownload(true);
+        		
+        		// Demarrage du telechargement
+        		// Configuration de l'instance du service de telechargement
+                downloadService = new DownloadService();
+                
+                // On associe la barre avec le telechargement
+                downloadProgressBar.progressProperty().bind(downloadService.progressProperty());
+                
+                // Action a la fin
+                downloadService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+                    @Override
+                    public void handle(WorkerStateEvent t) {
+                    	//System.out.println(service.getUrl() + "|" + service.getPath() + "|" + service.getDepth() + "|" + service.getMedia());
+                        toggleDownload(false);
+                    }
+                });
+                
+                // Action lors d'une annulation
+                downloadService.setOnCancelled(new EventHandler<WorkerStateEvent>() {
+                    @Override
+                    public void handle(WorkerStateEvent t) {
+                    	toggleDownload(false);
+                    }
+                });
+                
+        		// Parametres du telechargement
+        		downloadService.setUrl(downloadURL.getText());
+        		downloadService.setPath(downloadFolder.getText());
+        		downloadService.setDepth(downloadDepthChoiceBox.getValue());
+        		downloadService.setMedia(downloadCheckMedia.isSelected());
+        		
+                downloadService.restart();
+        	}
+        });
+        
+        // Action du bouton [Annuler]
+        downloadCancelBtn.setOnMouseClicked(new EventHandler<MouseEvent>() {
+        	public void handle(MouseEvent event){
+        		downloadService.cancel();
+        		
+        		//toggleDownload(false);
+        	}
+        });
+        
+        // Action du bouton qui ouvre le FileChooser
+        downloadBrowseBtn.setOnMouseClicked(new EventHandler<Event>() {
+
+			@Override
+			public void handle(Event event) {
+				DirectoryChooser chooser = new DirectoryChooser();
+		        chooser.setTitle(RESOURCE_FACTORY.getStringBinding("download.fileChooser.title").get());
+		        final File selectedDirectory = chooser.showDialog(tab1Title.getTabPane().getScene().getWindow());
+		        
+		        if (selectedDirectory != null) {
+	                downloadFolder.setText(selectedDirectory.getAbsolutePath());
+	            }
+			}
+		});
+        
         
         
         /*
@@ -204,7 +395,7 @@ public class CrawlerController {
         		
         	}
         });
-        
+
     }
 }
 
